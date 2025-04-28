@@ -1,15 +1,11 @@
 import pandas as pd
 import datetime
-from fastapi import FastAPI, HTTPException, UploadFile, File, Request
+from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.responses import StreamingResponse
+from fastapi.middleware.cors import CORSMiddleware
 import os
 import io # Para manejar el archivo en memoria
 import xlsxwriter # Para crear el archivo Excel
-from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse
-
-# --- Configuración de plantillas Jinja2 ---
-templates = Jinja2Templates(directory="templates")
 
 # --- Mapeo de operadores y meses (constantes) ---
 operator_list = [
@@ -31,12 +27,23 @@ meses_esp = {
 
 app = FastAPI()
 
-# --- Endpoint para servir la página HTML de carga ---
-@app.get("/", response_class=HTMLResponse)
-async def read_root(request: Request):
-    """Sirve la página HTML principal con el formulario de carga."""
-    return templates.TemplateResponse("index.html", {"request": request})
+# --- Configuración de CORS ---
+origins = [
+    "https://triangle.pe",    # Dominio de producción solicitado
+    "http://localhost",         # Para pruebas locales desde carga.html
+    "http://127.0.0.1",       # Otra IP local común
+    # Puedes añadir http://localhost:PUERTO si carga.html se sirve desde un puerto específico
+]
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,       # Lista de orígenes permitidos
+    allow_credentials=True,      # Permite cookies/auth headers (generalmente seguro incluir)
+    allow_methods=["*"],         # Permite todos los métodos (GET, POST, etc.)
+    allow_headers=["*"],         # Permite todas las cabeceras
+)
+
+# --- Endpoint para procesar el Excel --- (Modificado)
 @app.post("/programacion")
 async def process_and_generate_excel(file: UploadFile = File(...)):
     """
