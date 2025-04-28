@@ -1,10 +1,30 @@
 import pandas as pd
 import datetime
 from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 import os
 import io # Para manejar el archivo en memoria
 import xlsxwriter # Para crear el archivo Excel
+
+# --- Configuración de CORS ---
+origins = [
+    "https://triangle.pe",       # Dominio de producción
+    "http://localhost",        # Para pruebas locales
+    "http://127.0.0.1",      # Para pruebas locales
+    # Puedes añadir otros orígenes si es necesario, como dominios de staging
+]
+
+app = FastAPI()
+
+# --- Configuración de CORS ---
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,      # Lista de orígenes permitidos
+    allow_credentials=True,     # Permite cookies (si las usaras)
+    allow_methods=["*"],        # Permite todos los métodos (GET, POST, etc.)
+    allow_headers=["*"],        # Permite todas las cabeceras
+)
 
 # --- Mapeo de operadores y meses (constantes) ---
 operator_list = [
@@ -23,9 +43,6 @@ meses_esp = {
     5: 'Mayo', 6: 'Junio', 7: 'Julio', 8: 'Agosto',
     9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre'
 }
-
-# Inicializar la aplicación FastAPI
-app = FastAPI()
 
 @app.post("/programacion")
 async def process_and_generate_excel(file: UploadFile = File(...)):
