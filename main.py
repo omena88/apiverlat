@@ -1,30 +1,15 @@
 import pandas as pd
 import datetime
-from fastapi import FastAPI, HTTPException, UploadFile, File
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, HTTPException, UploadFile, File, Request
 from fastapi.responses import StreamingResponse
 import os
 import io # Para manejar el archivo en memoria
 import xlsxwriter # Para crear el archivo Excel
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse
 
-# --- Configuración de CORS ---
-origins = [
-    "https://triangle.pe",       # Dominio de producción
-    "http://localhost",        # Para pruebas locales
-    "http://127.0.0.1",      # Para pruebas locales
-    # Puedes añadir otros orígenes si es necesario, como dominios de staging
-]
-
-app = FastAPI()
-
-# --- Configuración de CORS ---
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,      # Lista de orígenes permitidos
-    allow_credentials=True,     # Permite cookies (si las usaras)
-    allow_methods=["*"],        # Permite todos los métodos (GET, POST, etc.)
-    allow_headers=["*"],        # Permite todas las cabeceras
-)
+# --- Configuración de plantillas Jinja2 ---
+templates = Jinja2Templates(directory="templates")
 
 # --- Mapeo de operadores y meses (constantes) ---
 operator_list = [
@@ -43,6 +28,12 @@ meses_esp = {
     5: 'Mayo', 6: 'Junio', 7: 'Julio', 8: 'Agosto',
     9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre'
 }
+
+# --- Endpoint para servir la página HTML de carga ---
+@app.get("/", response_class=HTMLResponse)
+async def read_root(request: Request):
+    """Sirve la página HTML principal con el formulario de carga."""
+    return templates.TemplateResponse("index.html", {"request": request})
 
 @app.post("/programacion")
 async def process_and_generate_excel(file: UploadFile = File(...)):
@@ -189,8 +180,8 @@ async def process_and_generate_excel(file: UploadFile = File(...)):
         headers={'Content-Disposition': f'attachment; filename="{output_filename}"'} # Indica al navegador que descargue el archivo
     )
 
-# Para ejecutar localmente con uvicorn: uvicorn main:app --reload
+# Para ejecutar localmente con uvicorn: uvicorn apiVerlat.main:app --reload
 if __name__ == "__main__":
     import uvicorn
     # Podemos volver al puerto 8000 por defecto si ya no hay conflicto
-    uvicorn.run(app, host="0.0.0.0", port=8000) 
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True) # Añadir reload=True aquí para consistencia local 
