@@ -1,30 +1,11 @@
 import pandas as pd
 import datetime
 from fastapi import FastAPI, HTTPException, UploadFile, File
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
+from fastapi.middleware.cors import CORSMiddleware
 import os
 import io # Para manejar el archivo en memoria
 import xlsxwriter # Para crear el archivo Excel
-
-# --- Configuración de CORS ---
-origins = [
-    "https://triangle.pe",       # Dominio de producción
-    "http://localhost",        # Para pruebas locales
-    "http://127.0.0.1",      # Para pruebas locales
-    # Puedes añadir otros orígenes si es necesario, como dominios de staging
-]
-
-app = FastAPI()
-
-# --- Configuración de CORS ---
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,      # Lista de orígenes permitidos
-    allow_credentials=True,     # Permite cookies (si las usaras)
-    allow_methods=["*"],        # Permite todos los métodos (GET, POST, etc.)
-    allow_headers=["*"],        # Permite todas las cabeceras
-)
 
 # --- Mapeo de operadores y meses (constantes) ---
 operator_list = [
@@ -44,6 +25,25 @@ meses_esp = {
     9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre'
 }
 
+app = FastAPI()
+
+# --- Configuración de CORS ---
+origins = [
+    "https://triangle.pe",    # Dominio de producción solicitado
+    "http://localhost",         # Para pruebas locales desde carga.html
+    "http://127.0.0.1",       # Otra IP local común
+    # Puedes añadir http://localhost:PUERTO si carga.html se sirve desde un puerto específico
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,       # Lista de orígenes permitidos
+    allow_credentials=True,      # Permite cookies/auth headers (generalmente seguro incluir)
+    allow_methods=["*"],         # Permite todos los métodos (GET, POST, etc.)
+    allow_headers=["*"],         # Permite todas las cabeceras
+)
+
+# --- Endpoint para procesar el Excel --- (Modificado)
 @app.post("/programacion")
 async def process_and_generate_excel(file: UploadFile = File(...)):
     """
@@ -189,8 +189,8 @@ async def process_and_generate_excel(file: UploadFile = File(...)):
         headers={'Content-Disposition': f'attachment; filename="{output_filename}"'} # Indica al navegador que descargue el archivo
     )
 
-# Para ejecutar localmente con uvicorn: uvicorn main:app --reload
+# Para ejecutar localmente con uvicorn: uvicorn apiVerlat.main:app --reload
 if __name__ == "__main__":
     import uvicorn
     # Podemos volver al puerto 8000 por defecto si ya no hay conflicto
-    uvicorn.run(app, host="0.0.0.0", port=8000) 
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True) # Añadir reload=True aquí para consistencia local 
