@@ -29,6 +29,8 @@ meses_esp = {
     9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre'
 }
 
+app = FastAPI()
+
 # --- Endpoint para servir la página HTML de carga ---
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
