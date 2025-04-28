@@ -3,5 +3,4 @@ uvicorn[standard]
 pandas
 openpyxl # Necesario para leer archivos .xlsx con pandas
 xlsxwriter # Necesario para escribir archivos .xlsx
-
-# No incluimos xlsxwriter porque ya no escribimos archivos Excel 
+jinja2 # Para servir plantillas HTML

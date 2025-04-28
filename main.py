@@ -1,11 +1,16 @@
 import pandas as pd
 import datetime
-from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi import FastAPI, HTTPException, UploadFile, File, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 import os
 import io # Para manejar el archivo en memoria
 import xlsxwriter # Para crear el archivo Excel
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse
+
+# --- Configuración de plantillas Jinja2 ---
+templates = Jinja2Templates(directory="apiVerlat/templates")
 
 # --- Configuración de CORS ---
 origins = [
@@ -43,6 +48,12 @@ meses_esp = {
     5: 'Mayo', 6: 'Junio', 7: 'Julio', 8: 'Agosto',
     9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre'
 }
+
+# --- Endpoint para servir la página HTML de carga ---
+@app.get("/", response_class=HTMLResponse)
+async def read_root(request: Request):
+    """Sirve la página HTML principal con el formulario de carga."""
+    return templates.TemplateResponse("index.html", {"request": request})
 
 @app.post("/programacion")
 async def process_and_generate_excel(file: UploadFile = File(...)):
