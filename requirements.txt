@@ -4,3 +4,4 @@ pandas
 openpyxl # Necesario para leer archivos .xlsx con pandas
 xlsxwriter # Necesario para escribir archivos .xlsx
 jinja2 # Para servir plantillas HTML
+python-multipart # Necesario para manejar la carga de archivos (form data)
